@@ -1,7 +1,6 @@
 import { nanoid } from "nanoid";
 import { NextRequest } from "next/server";
 import * as redis from 'redis';
-import { createClient } from "redis";
 
 const REDIS_USERNAME = process.env.REDIS_USERNAME;
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
