@@ -28,23 +28,21 @@ export const POST = async (req: NextRequest) => {
         const {text, tags} = body;
 
         const commentId = nanoid();
-        // add comment to list
-        await redisClient.rPush('comments', commentId);
-
-        // add tags to comment
-        await redisClient.sAdd(`tags:${commentId}`, tags);
-        // sets -> holds unique values - no duplicates - always unique
-
-        // retrieve & store the comment details
+        
         const comment = {
             text,
             timestamp: new Date().toString(),
             author: req.cookies.get('userId')?.value,
         }
-        Object.entries(comment).forEach(async ([field, value]) => {
-            await redisClient.hSet(`comment_details:${commentId}`, field, value);
-        })
         
+        await Promise.all([
+            redisClient.rPush('comments', commentId),   // add comment to list
+            redisClient.sAdd(`tags:${commentId}`, tags), // add tags to comment
+            // sets -> holds unique values - no duplicates - always unique
+            Object.entries(comment).forEach(async ([field, value]) => {
+                redisClient.hSet(`comment_details:${commentId}`, field, value);
+            }), // retrieve & store the comment details
+        ])
 
         return new Response('OK');
     } catch (error) {
